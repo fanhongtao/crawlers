@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-import scrapy
 import os
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
 
-class BlogSpider(scrapy.Spider):
+class BlogSpider(CrawlSpider):
     name = 'blog'
     allowed_domains = ['fanhongtao.github.io']
     start_urls = ['https://fanhongtao.github.io/']
+    rules = (
+        Rule(LinkExtractor(allow=".*html"), callback="parse_html", follow=True),
+    )
 
     def __init__(self):
         super().__init__();
@@ -16,13 +20,9 @@ class BlogSpider(scrapy.Spider):
         if (os.path.exists(self.url_file)):
             os.remove(self.url_file)
 
-    def parse(self, response):
+    def parse_html(self, response):
         self.log_url(response)
         self.save_html(response)
-        for href in response.css('a::attr(href)'):
-            url = href.extract()
-            if (url.endswith(".html") or url.endswith(".htm") or url.endswith("/")):
-                yield response.follow(href, callback=self.parse)
 
     def log_url(self, response):
         with open(self.url_file, 'a') as f:
