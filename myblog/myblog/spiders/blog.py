@@ -8,4 +8,13 @@ class BlogSpider(scrapy.Spider):
     start_urls = ['http://fanhongtao.github.io/']
 
     def parse(self, response):
-        pass
+        self.save_html(response)
+
+    def save_html(self, response):
+        page = response.url.split("//")[-1]
+        filename = page.strip("/").replace("/", "_")
+        if (not (filename.endswith(".html") or filename.endswith(".htm"))):
+            filename = filename + ".html"
+        with open(filename, 'wb') as f:
+            f.write(response.body)
+        self.log('Saved file %s' % filename)
