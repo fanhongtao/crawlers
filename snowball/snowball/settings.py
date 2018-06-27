@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'snowball.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'snowball (+http://www.yourdomain.com)'
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:16.0) Gecko/20120813 Firefox/16.0'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
