@@ -2,6 +2,7 @@
 import scrapy
 
 from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
 
 class ColumnSpider(scrapy.Spider):
     name = 'column'
@@ -14,7 +15,26 @@ class ColumnSpider(scrapy.Spider):
         self.driver.set_page_load_timeout(10)
 
     def parse(self, response):
+        try:
+            self.driver.get(response.url)
+        except Exception as e:
+            # 第一次调用总会失败，报错：
+            #   ConnectionAbortedError: [WinError 10053] 你的主机中的软件中止了一个已建立的连接 。
+            # 原因未知，所以在捕获异常后再调用一次。
+            try:
+                self.driver.get(response.url)
+            except Exception as e:
+                self.log(e)
+        
+        wait = WebDriverWait(self.driver, 30)  # 最多等30秒
+        wait.until(lambda driver: driver.find_element_by_class_name("pagination"))
+        
         self.save_html(response)
+        column_items = self.driver.find_elements_by_class_name("column__item")
+        for item in column_items:
+            a = item.find_element_by_tag_name("a")
+            print(a.text)
+            print(a.get_attribute('href'))
 
     def save_html(self, response):
         page = response.url.split("//")[-1]
