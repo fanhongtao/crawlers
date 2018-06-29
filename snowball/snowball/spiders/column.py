@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 import scrapy
 
 from selenium import webdriver
@@ -16,6 +17,9 @@ class ColumnSpider(scrapy.Spider):
         self.driver.set_page_load_timeout(10)
         self.column_item_file = "column_" + userid + ".json"
         self.column_items = [];
+        self.column_path = "column/" + userid
+        if (not os.path.exists(self.column_path)):
+            os.makedirs(self.column_path)
 
     def parse(self, response):
         try:
@@ -55,7 +59,7 @@ class ColumnSpider(scrapy.Spider):
 
     def save_html(self, response):
         page = response.url.split("//")[-1]
-        filename = page.strip("/").replace("/", "_")
+        filename = self.column_path + "/" + page.strip("/").replace("/", "_")
         if (not (filename.endswith(".html") or filename.endswith(".htm"))):
             filename = filename + ".html"
         with open(filename, 'wb') as f:
@@ -64,7 +68,8 @@ class ColumnSpider(scrapy.Spider):
 
     def save_item_link(self):
         items = {'items': self.column_items}
-        with open(self.column_item_file, 'w') as f:
+        filename = self.column_path + "/" + self.column_item_file
+        with open(filename, 'w') as f:
             f.write(json.dumps(items, ensure_ascii=False, indent=2))
 
     def closed(self, reason):
