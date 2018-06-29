@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import scrapy
 
 from selenium import webdriver
@@ -13,6 +14,9 @@ class ColumnSpider(scrapy.Spider):
         self.start_urls = ['http://xueqiu.com/%s/column' % userid]
         self.driver = webdriver.Firefox()
         self.driver.set_page_load_timeout(10)
+        self.column_item_file = "column_" + userid + ".json"
+        if (os.path.exists(self.column_item_file)):
+            os.remove(self.column_item_file)
 
     def parse(self, response):
         try:
@@ -33,8 +37,7 @@ class ColumnSpider(scrapy.Spider):
         column_items = self.driver.find_elements_by_class_name("column__item")
         for item in column_items:
             a = item.find_element_by_tag_name("a")
-            print(a.text)
-            print(a.get_attribute('href'))
+            self.save_item_link(a.text, a.get_attribute("href"))
 
     def save_html(self, response):
         page = response.url.split("//")[-1]
@@ -44,6 +47,12 @@ class ColumnSpider(scrapy.Spider):
         with open(filename, 'wb') as f:
             f.write(response.body)
         self.log('Saved file %s' % filename)
+
+    def save_item_link(self, title, link):
+        with open(self.column_item_file, 'a') as f:
+            f.write("{title: " + title + ", link:" + link + "},\n")
+            print(title)
+            print(link)
 
     def closed(self, reason):
         # Spider中没有 closed 方法，所以不需要如下语句
