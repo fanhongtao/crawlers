@@ -40,6 +40,7 @@ class ColumnSpider(scrapy.Spider):
                 title = a.text
                 link = a.get_attribute("href")
                 self.column_items.append({'title': title, 'link': link})
+                yield scrapy.Request(link, callback=self.parse_column_item)
             
             next_page = self.driver.find_element_by_class_name("pagination__next")
             next_page_style = next_page.get_attribute("style")
@@ -48,6 +49,9 @@ class ColumnSpider(scrapy.Spider):
             else:
                 self.log("Click for next page ...")
                 next_page.click()   # 通过在浏览器上点击“下一页”，获取新数据
+
+    def parse_column_item(self, response):
+        self.save_html(response)   # 专栏在具体文章，直接保存
 
     def save_html(self, response):
         page = response.url.split("//")[-1]
