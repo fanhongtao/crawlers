@@ -29,16 +29,25 @@ class ColumnSpider(scrapy.Spider):
             except Exception as e:
                 self.log(e)
         
-        wait = WebDriverWait(self.driver, 30)  # 最多等30秒
-        wait.until(lambda driver: driver.find_element_by_class_name("pagination"))
-        
-        self.save_html(response)
-        column_items = self.driver.find_elements_by_class_name("column__item")
-        for item in column_items:
-            a = item.find_element_by_tag_name("a")
-            title = a.text
-            link = a.get_attribute("href")
-            self.column_items.append({'title': title, 'link': link})
+        while True:
+            wait = WebDriverWait(self.driver, 30)  # 最多等30秒
+            wait.until(lambda driver: driver.find_element_by_class_name("pagination"))
+            
+            self.save_html(response)
+            column_items = self.driver.find_elements_by_class_name("column__item")
+            for item in column_items:
+                a = item.find_element_by_tag_name("a")
+                title = a.text
+                link = a.get_attribute("href")
+                self.column_items.append({'title': title, 'link': link})
+            
+            next_page = self.driver.find_element_by_class_name("pagination__next")
+            next_page_style = next_page.get_attribute("style")
+            if (next_page_style.count("none") != 0):  # 找到 style="display: none;" ，说明已经是最后一页了
+                break
+            else:
+                self.log("Click for next page ...")
+                next_page.click()   # 通过在浏览器上点击“下一页”，获取新数据
 
     def save_html(self, response):
         page = response.url.split("//")[-1]
